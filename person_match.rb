@@ -20,7 +20,8 @@ def dateHumanFormatted(dateInMemorialFmt)
   [getDay(dateInMemorialFmt), getMonth(dateInMemorialFmt), getYear(dateInMemorialFmt)].drop_while(&:nil?).join('.')
 end
 
-VarFIO = Struct.new(:varname, :varifname, :variname, :varilname, :variall) do
+VarFIO ||= Struct.new(:varname, :varifname, :variname, :varilname, :variall)
+class VarFIO
   def self.from_raw_strings(varname, varifname, variname, varilname, variall)
     self.new( *[varname, varifname, variname, varilname, variall].map{|x| x.split('|').map(&:strip)} )
   end
@@ -82,9 +83,10 @@ def load_data!
   }.to_h
 end
 
-Person = Struct.new(:id, :fname_id, :name_id, :lname_id, :birthdate_memofmt, :birthplace_id, :nation_id, :work_id, :liveplace_id, 
+Person ||= Struct.new(:id, :fname_id, :name_id, :lname_id, :birthdate_memofmt, :birthplace_id, :nation_id, :work_id, :liveplace_id, 
                     :arestdate_memofmt, :sudorgan_id, :suddate_memofmt, :stat_id, :prigovor_id, :rasstrel, :mortdate_memofmt, :reabdate_memofmt,
-                    :book, :age, :gender) do
+                    :book, :age, :gender)
+class Person
   def self.from_string(str)
     id, fname_id, name_id, lname_id, birthdate_memofmt, birthplace_id, nation_id, work_id, liveplace_id, 
                     arestdate_memofmt, sudorgan_id, suddate_memofmt, stat_id, prigovor_id, rasstrel, mortdate_memofmt, reabdate_memofmt, book, age, gender = str.chomp.split(";")
@@ -113,6 +115,10 @@ Person = Struct.new(:id, :fname_id, :name_id, :lname_id, :birthdate_memofmt, :bi
   def work; $WORKS[stat_id]; end
   def sudorgan; $SUDORG[stat_id]; end
   
+  def birth_year; getYear(birthdate_memofmt); end
+  def year_of_arrest; getYear(arestdate_memofmt); end
+  def year_of_death; getYear(mortdate_memofmt); end
+
   def birthdate; dateHumanFormatted(birthdate_memofmt); end
   def arestdate; dateHumanFormatted(arestdate_memofmt); end
   def suddate; dateHumanFormatted(suddate_memofmt); end
@@ -148,10 +154,14 @@ Person = Struct.new(:id, :fname_id, :name_id, :lname_id, :birthdate_memofmt, :bi
     result << "Семья: #{family}"  if family && !family.empty?
     result << "Образование: #{education}"  if education && !education.empty?
     result << "Арест: #{arestdate} #{aresttype}" if (aresttype && !aresttype.empty?) || !arestdate.empty?
-    result << "Постановление: (#{suddate}) #{stat} -- #{sudorg}"  if !suddate.empty? || !stat.empty? || !sudorg.empty?
+    result << "Постановление: (#{suddate}) #{stat} -- #{sudorgan}"  if !suddate.empty? || !stat.empty? || !sudorgan.empty?
     result << "Приговор: #{prigovor}; Расстрел: #{rasstrel ? 'да' : 'нет'}; Умер: #{mortdate}" if !prigovor.empty? || !mortdate.empty?
     result << "Реабилитирован: (#{reabdate}) #{reaborgan}"  if !reabdate.empty? || !reaborgan.empty?
     result.join("\n")
+  end
+
+  def fullname_with_year
+    "#{full_name} (#{getYear(birthdate_memofmt)})"
   end
   
   def full_info_row
@@ -172,11 +182,20 @@ def loc_match?(place_1, place_2, threshold: 0.5)
 end
 
 def loc_match_any?(places_1, places_2, threshold: 0.5)
-  places_1.any?{|place_1|
-    places_2.any?{|place_2|
-      loc_match?(place_1, place_2, threshold: threshold)
+  places_1.map(&:downcase).any?{|place_1|
+    places_2.map(&:downcase).any?{|place_2|
+      threshold.zero?  ?  (place_1 == place_2)  :  loc_match?(place_1, place_2, threshold: threshold)
     }
   }
+end
+
+def hypothetical_fathers(person)
+  $persons_by_normfname_name[person.fname_normalized][person.father_name]
+    .reject{|hypot_father|
+      hypot_father == person # Иосиф Иосифович
+    }.select{|hypot_father|
+      older?(hypot_father.birthdate_memofmt, person.birthdate_memofmt, min_difference: 14, default: false)
+    }
 end
 
 def load_persons!
