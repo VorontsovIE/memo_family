@@ -13,9 +13,20 @@ headers = [
 ]
 puts headers.join("\t")
 
-$persons.lazy.select{|person|
+# Двухпроходка: сначала ищем по людям (отцам) потенциальных детей (при этом отбрасываем "детей" "родителей", у которых слишком много детей)
+# Потом по детям ищем отцов. Если находим единственного, то это получается "компактное" семейство
+
+# Дети не слишком "многодетных" отцов (слишком "многодетные отцы" - это скорее всего ошибки картирования)
+potential_children = $persons.lazy.select{|person|
   (!person.birthplace.empty? || !person.liveplace.empty?)
 }.map{|person|
+  hypothetical_children(person)
+}.select{|children|
+  children.size <= 4
+}.to_a.flatten
+
+# По детям восстановим отцов
+potential_children.uniq.map{|person|
   [person, hypothetical_fathers(person)]
 }.reject{|person, hypots|
   hypots.empty? #|| hypots.size > 10

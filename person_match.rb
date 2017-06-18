@@ -81,6 +81,8 @@ def load_data!
   $lname_to_name = File.readlines('man_names.tsv').map{|l| l.chomp.split("\t") }.flat_map{|name, lnames|
     lnames.split(',').map{|lname| [lname, name] }
   }.to_h
+
+  $name_to_lnames = File.readlines('man_names.tsv').map{|l| l.chomp.split("\t") }.map{|name, lnames| [name, lnames.split(',')] }.to_h
 end
 
 Person ||= Struct.new(:id, :fname_id, :name_id, :lname_id, :birthdate_memofmt, :birthplace_id, :nation_id, :work_id, :liveplace_id, 
@@ -198,6 +200,18 @@ def hypothetical_fathers(person)
     }
 end
 
+def hypothetical_children(person)
+  same_surnames = $persons_by_normfname_lname[person.fname_normalized]
+  lnames = $name_to_lnames[person.name] || []
+  lnames.flat_map{|children_name|
+    same_surnames[children_name]
+  }.reject{|hypot_children|
+    hypot_children == person # Иосиф Иосифович
+  }.select{|hypot_children|
+    older?(person.birthdate_memofmt, hypot_children.birthdate_memofmt, min_difference: 14, default: false)
+  }
+end
+
 def load_persons!
   $persons_by_normfname_name = Hash.new{|h, fname|
     h[fname] = Hash.new{|h2, name|
@@ -205,17 +219,17 @@ def load_persons!
     }
   }
 
-  $persons_by_fname_name = Hash.new{|h, fname|
-    h[fname] = Hash.new{|h2, name|
-      h2[name] = []
+  $persons_by_normfname_lname = Hash.new{|h, fname|
+    h[fname] = Hash.new{|h2, lname|
+      h2[lname] = []
     }
   }
 
   $persons = []
 
   Person.each_in_file('csv_unicode/persons.csv'){|person|
-    $persons_by_fname_name[person.fname][person.name] << person
     $persons_by_normfname_name[person.fname_normalized][person.name] << person
+    $persons_by_normfname_lname[person.fname_normalized][person.lname] << person
     $persons << person
   }
 end
