@@ -1,0 +1,15 @@
+.comtent {
+	width: 100%;
+}
+.person{
+	text-align: center;
+	display: inline-block;
+	width: 45%;
+	border: 1px solid black;
+	height: 350px;
+}
+
+a {
+	font-weight: bolder;
+	font-size: 1.4em;
+}
