@@ -1,57 +1,62 @@
-require 'person_match'
+require_relative 'person_match'
 
 load_data!
 load_persons!
 
+LINK_TYPES = {hasfather: 0, }
 ####################################################################
 
-$persons.lazy.map{|person|
-  father_hypots = $persons_by_normfname_name[person.fname_normalized][person.father_name]
-    .reject{|hypot_father|
-      hypot_father == person # Иосиф Иосифович
-    }.select{|hypot_father|
-      older?(hypot_father.birthdate_memofmt, person.birthdate_memofmt, min_difference: 14, default: false)
-    }
+headers = [
+  'FirstPersonId', 'SecondPersonId', 'LinkType',
+  'FirstName',  'FirstSex',  'FirstBirthYear',  'FirstYearOfArrest',  'FirstYearOfDeath',
+  'SecondName', 'SecondSex', 'SecondBirthYear', 'SecondYearOfArrest', 'SecondYearOfDeath',
+]
+puts headers.join("\t")
 
-  [person, father_hypots]
+$persons.lazy.select{|person|
+  (!person.birthplace.empty? || !person.liveplace.empty?)
+}.map{|person|
+  [person, hypothetical_fathers(person)]
 }.reject{|person, hypots|
-  hypots.empty? || hypots.size > 1 # 3
+  hypots.empty? #|| hypots.size > 10
+}.map{|person, hypots|
+  hypots_with_place = hypots.select{|hypot| !hypot.birthplace.empty? || !hypot.liveplace.empty? }
+  hypots_with_same_reabdate = hypots_with_place.select{|hypot|
+    person.reabdate == hypot.reabdate
+  }
+  hypots_same_location = hypots_with_same_reabdate.select{|hypot|
+    loc_match_any?([person.birthplace, person.liveplace], [hypot.birthplace, hypot.liveplace], threshold: 0.0)
+  }
+ [person, hypots_with_same_reabdate]
 }.select{|person, hypots|
-  !person.birthplace.empty? && hypots.any?{|hypot| !hypot.birthplace.empty? }
-}.select{|person, hypots|
-  hypot = hypots.first
-  loc_match_any?([person.birthplace, person.liveplace], [hypot.birthplace, hypot.liveplace], threshold: 0.0)
-}.first(30).each{|person, hypots|
-  hypot = hypots.first
-  puts '-------------------'
-  puts person.infocard
-  puts ' ==>'
-  puts hypot.infocard
+  hypots.size == 1
+}.map{|person, hypots|
+  [person, hypots.first]
+}.each{|child, father|
+  infos = [
+    father.id,
+    child.id,
+    LINK_TYPES[:hasfather],
+
+    father.fullname_with_year,
+    father.gender,
+    father.birth_year,
+    father.year_of_arrest,
+    father.year_of_death,
+
+    child.fullname_with_year,
+    child.gender,
+    child.birth_year,
+    child.year_of_arrest,
+    child.year_of_death,
+  ]
+  puts infos.join("\t")
 }
-# .select{|person, hypots| person.family || hypots.first.family}
-#.each_with_index{|(person, hypots), idx| print '.'  if idx % 100 == 99 }
-
-###########################################################
-
-
-algir = CSV.readlines('algir.csv').drop(1)
-algir.select{|person|
-  person[6]&.match?(/ЧСИР/i)
-}.map{|algir|
-  surname = algir[0].split(' ').first
-  same_surname_persons = $persons_by_fname_name[surname].values.flatten.select{|person| person.gender == :м && person.vmn? }
-  [algir, same_surname_persons]
-}.select{|algir, same_surname_persons|
-  same_surname_persons.size == 1
-}.map{|algir, same_surname_persons|
-  [algir, same_surname_persons.first]
-}.select{|algir, person_2|
-  loc_match_any?([algir[2], algir[5]], [person_2.birthplace, person_2.liveplace], threshold: 0.6)
-}.each{|algir, person_2|
-  puts '----------------'
-  puts person_2.infocard
-  puts '  ==>'
-  puts algir.join("\t")
-}.tap{|dataset|
-  puts "Количество: #{dataset.size}"
-}
+# # .count
+# # .each_with_index{|(person, hypot), idx| print '.'  if idx % 100 == 99 }
+# .first(30).each{|person, hypot|
+#   puts '-------------------'
+#   puts person.infocard
+#   puts ' ==>'
+#   puts hypot.infocard
+# }
