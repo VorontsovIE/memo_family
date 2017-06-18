@@ -1,3 +1,49 @@
 .name
-  %a{href: "https://ru.openlist.wiki/#{person.fullname_with_year}"}= person.fullname_with_year
-.infocard= person.infocard
+	%a.person_name{href: "https://ru.openlist.wiki/#{person.fullname_with_year}"}= person.fullname_with_year
+.infocard
+	.nation= [person.nation, person.poddanstvo].compact.reject(&:empty?).join(';')
+	- if person.varfio
+		.varfio
+			%b Варианты имени:
+			= person.varfio
+		= person.birthplace
+	- if person.birthplace
+		.birthplace
+			%b Родился:
+			= person.birthplace
+	- if !person.liveplace.empty?
+		.liveplace
+			%b Постоянное место жительства:
+			= person.liveplace 
+	- if person.family && !person.family.empty?
+		.family
+			%b Семья:
+			= person.family 
+	- if person.education && !person.education.empty?
+		.education
+			%b Образование:
+			= person.education
+	- if (person.aresttype && !person.aresttype.empty?) || !person.arestdate.empty?
+		.arest
+			%b Арест:
+			= "#{person.arestdate} #{person.aresttype}"
+	- if !person.suddate.empty? || !person.stat.empty? || !person.sudorgan.empty?
+		.sud
+			%b Постановление:
+			= "(#{person.suddate}) #{person.stat} -- #{person.sudorgan}"
+	- if !person.prigovor.empty? || !person.mortdate.empty?
+		.prigovor
+			%b Приговор:
+			= person.prigovor
+		.rasstrel
+			%b Расстрел:
+			= person.rasstrel ? 'да' : 'нет'
+		.mort
+			%b Умер:
+			= person.mortdate
+	- if !person.reabdate.empty? || !person.reaborgan.empty?
+		.reab
+			%b Реабилитирован:
+			= "(#{person.reabdate}) #{person.reaborgan}"
+
+	

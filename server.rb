@@ -15,7 +15,6 @@ get '/' do
   if params['id']
     id = Integer(params['id'])
     father_id, child_id = *$pairs[id]
-    father_id, child_id = *$pairs.sample
     father = $person_by_id[father_id]
     child = $person_by_id[child_id]
     haml :show_pair, locals: {person_1: father, person_2: child}
@@ -23,5 +22,4 @@ get '/' do
     id = (rand * $pairs.size).to_i
     redirect to("/?id=#{id}")
   end
-  redirect
 end
