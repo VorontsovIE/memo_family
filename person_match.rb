@@ -182,8 +182,8 @@ def loc_match?(place_1, place_2, threshold: 0.5)
 end
 
 def loc_match_any?(places_1, places_2, threshold: 0.5)
-  places_1.map(&:downcase).any?{|place_1|
-    places_2.map(&:downcase).any?{|place_2|
+  places_1.compact.map(&:downcase).any?{|place_1|
+    places_2.compact.map(&:downcase).any?{|place_2|
       threshold.zero?  ?  (place_1 == place_2)  :  loc_match?(place_1, place_2, threshold: threshold)
     }
   }

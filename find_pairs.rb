@@ -22,7 +22,7 @@ $persons.lazy.select{|person|
 }.map{|person, hypots|
   hypots_with_place = hypots.select{|hypot| !hypot.birthplace.empty? || !hypot.liveplace.empty? }
   hypots_with_same_reabdate = hypots_with_place.select{|hypot|
-    person.reabdate == hypot.reabdate
+    !person.reabdate.empty? && person.reabdate == hypot.reabdate
   }
   hypots_same_location = hypots_with_same_reabdate.select{|hypot|
     loc_match_any?([person.birthplace, person.liveplace], [hypot.birthplace, hypot.liveplace], threshold: 0.0)
