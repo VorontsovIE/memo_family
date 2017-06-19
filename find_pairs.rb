@@ -38,7 +38,7 @@ potential_children.uniq.map{|person|
   hypots_same_location = hypots_with_same_reabdate.select{|hypot|
     loc_match_any?([person.birthplace, person.liveplace], [hypot.birthplace, hypot.liveplace], threshold: 0.0)
   }
- [person, hypots_with_same_reabdate]
+ [person, hypots_same_location]
 }.select{|person, hypots|
   hypots.size == 1
 }.map{|person, hypots|
