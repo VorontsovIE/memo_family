@@ -1,8 +1,13 @@
 .persons
-  .person= haml :person, locals: {person: person_1}
-  .person= haml :person, locals: {person: person_2}
+	.person= haml :person, locals: {person: person_1}
+	.link_type= link_type
+	.person= haml :person, locals: {person: person_2}
+- if entire_family_pairs(person_1.id).size > 1
+	%a.show_whole_family{href: "/family/#{person_1.id}"}
+		%button Показать всю семью
+	
 .random_family
-  %a{href: '/'} Показать ещё
+	%a{href: '/'} Показать ещё
 .confirm
-  %button.accept Подтвердить
-  %button.reject Это разные семьи
+	%button.accept Подтвердить
+	%button.reject Это разные семьи

@@ -1,0 +1,7 @@
+.family
+	- relations.each do |relation|
+		.persons
+			.person= haml :person, locals: {person: relation[:person_1]}
+			.link_type= relation[:link_type]
+			.person= haml :person, locals: {person: relation[:person_2]}
+

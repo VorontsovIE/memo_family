@@ -1,10 +1,15 @@
 .content {
 	width: 100%;
 }
+.link_type {
+	text-align: center;
+	display: inline-block;
+	padding: 150px 5px;
+}
 .person{
 	text-align: center;
 	display: inline-block;
-	width: 45%;
+	width: 40%;
 	border: 1px solid black;
 	height: 350px;
 	vertical-align: top;
