@@ -3,7 +3,29 @@ require_relative 'person_match'
 load_data!
 load_persons!
 
-LINK_TYPES = {hasfather: 0, }
+
+LINK_TYPES = {isFatherOf: 0, isSiblingOf: 1, isDuplicateOf: 2}
+
+def relation_infos(person_1, person_2, link_type)
+  infos = [
+    person_1.id,
+    person_2.id,
+    LINK_TYPES[link_type],
+
+    person_1.fullname_with_year,
+    person_1.gender,
+    person_1.birth_year,
+    person_1.year_of_arrest,
+    person_1.year_of_death,
+
+    person_2.fullname_with_year,
+    person_2.gender,
+    person_2.birth_year,
+    person_2.year_of_arrest,
+    person_2.year_of_death,
+  ]
+end
+
 ####################################################################
 
 headers = [
@@ -12,6 +34,9 @@ headers = [
   'SecondName', 'SecondSex', 'SecondBirthYear', 'SecondYearOfArrest', 'SecondYearOfDeath',
 ]
 puts headers.join("\t")
+
+
+# Отцы и дети
 
 # Двухпроходка: сначала ищем по людям (отцам) потенциальных детей (при этом отбрасываем "детей" "родителей", у которых слишком много детей)
 # Потом по детям ищем отцов. Если находим единственного, то это получается "компактное" семейство
@@ -31,43 +56,63 @@ potential_children.uniq.map{|person|
 }.reject{|person, hypots|
   hypots.empty? #|| hypots.size > 10
 }.map{|person, hypots|
-  hypots_with_place = hypots.select{|hypot| !hypot.birthplace.empty? || !hypot.liveplace.empty? }
-  hypots_with_same_reabdate = hypots_with_place.select{|hypot|
+  hypots_refined = hypots.select{|hypot| !hypot.birthplace.empty? || !hypot.liveplace.empty? }
+  [person, hypots_refined]
+}.map{|person, hypots|
+  hypots_refined = hypots.select{|hypot|
     !person.reabdate.empty? && person.reabdate == hypot.reabdate
   }
-  hypots_same_location = hypots_with_same_reabdate.select{|hypot|
+  [person, hypots_refined]
+}.map{|person, hypots|
+  hypots_refined = hypots.select{|hypot|
     loc_match_any?([person.birthplace, person.liveplace], [hypot.birthplace, hypot.liveplace], threshold: 0.0)
   }
- [person, hypots_same_location]
+ [person, hypots_refined]
 }.select{|person, hypots|
   hypots.size == 1
 }.map{|person, hypots|
   [person, hypots.first]
 }.each{|child, father|
-  infos = [
-    father.id,
-    child.id,
-    LINK_TYPES[:hasfather],
-
-    father.fullname_with_year,
-    father.gender,
-    father.birth_year,
-    father.year_of_arrest,
-    father.year_of_death,
-
-    child.fullname_with_year,
-    child.gender,
-    child.birth_year,
-    child.year_of_arrest,
-    child.year_of_death,
-  ]
+  infos = relation_infos(father, child, :isFatherOf)
   puts infos.join("\t")
 }
-# # .count
-# # .each_with_index{|(person, hypot), idx| print '.'  if idx % 100 == 99 }
-# .first(30).each{|person, hypot|
-#   puts '-------------------'
-#   puts person.infocard
-#   puts ' ==>'
-#   puts hypot.infocard
-# }
+
+# Сиблинги
+$persons.lazy.select{|person|
+  (!person.birthplace.empty? || !person.liveplace.empty?) && !person.reabdate.empty?
+}.map{|person|
+  [person, hypothetical_siblings(person)]
+}.reject{|person, hypots|
+  hypots.empty?
+}
+.map{|person, hypots|
+  hypots_refined = hypots.select{|hypot| !hypot.birthplace.empty? || !hypot.liveplace.empty? }
+  [person, hypots_refined]
+}.map{|person, hypots|
+  hypots_refined = hypots.select{|hypot|
+    !person.reabdate.empty? && person.reabdate == hypot.reabdate
+  }
+  [person, hypots_refined]
+}.map{|person, hypots|
+  hypots_refined = hypots.select{|hypot|
+    loc_match_any?([person.birthplace, person.liveplace], [hypot.birthplace, hypot.liveplace], threshold: 0.0)
+  }
+ [person, hypots_refined]
+}.reject{|person, hypots|
+  hypots.empty? || hypots.size > 4 # слишком много братьев-сестер. Вероятно, ошибка
+}.flat_map{|person, hypots|
+  hypots.map{|hypot|
+    [person, hypot]
+  }
+}.select{|person, sibling|
+  # isSiblingOf is a symmetrical relation so we need to check each pair just once
+  # We can't do it before filtering too large groups because the last siblings will have small enough hypotheses to pass 
+  person.id < sibling.id
+}.each{|person, sibling|
+  if person.fullname_with_year != sibling.fullname_with_year
+    infos = relation_infos(person, sibling, :isSiblingOf)
+  else
+    infos = relation_infos(person, sibling, :isDuplicateOf)
+  end
+  puts infos.join("\t")
+}

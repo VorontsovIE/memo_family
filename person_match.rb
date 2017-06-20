@@ -42,6 +42,7 @@ def load_data!
   $FNAMES_NORMALIZED = File.readlines('csv_unicode/fnames_normalized.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
   $NAMES = File.readlines('csv_unicode/names.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
   $LNAMES = File.readlines('csv_unicode/lnames.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
+  $FATHER_NAME_FROM_LNAMES = File.readlines('csv_unicode/fathers_names_from_lnames.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
   $PLACES = File.readlines('csv_unicode/geoplace.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
   $NATIONS = File.readlines('csv_unicode/nations.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
   $STATS = File.readlines('csv_unicode/stat.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
@@ -128,6 +129,7 @@ class Person
   def reabdate; dateHumanFormatted(reabdate_memofmt); end
   
   def father_name; $lname_to_name[lname]; end
+  def father_name_normalized; $FATHER_NAME_FROM_LNAMES[lname_id]; end
   def full_name; "#{fname} #{name} #{lname}"; end
   def nation; $NATIONS[nation_id]; end
   def family; fam_id = $PERSON_TO_FAMILY[id]; fam_id && $FAMILIES[fam_id] end
@@ -184,8 +186,8 @@ def loc_match?(place_1, place_2, threshold: 0.5)
 end
 
 def loc_match_any?(places_1, places_2, threshold: 0.5)
-  places_1.compact.map(&:downcase).any?{|place_1|
-    places_2.compact.map(&:downcase).any?{|place_2|
+  places_1.compact.map(&:downcase).reject(&:empty?).any?{|place_1|
+    places_2.compact.map(&:downcase).reject(&:empty?).any?{|place_2|
       threshold.zero?  ?  (place_1 == place_2)  :  loc_match?(place_1, place_2, threshold: threshold)
     }
   }
@@ -212,6 +214,12 @@ def hypothetical_children(person)
   }
 end
 
+def hypothetical_siblings(person)
+  $persons_by_normfname_normfathersname[person.fname_normalized][person.father_name_normalized].reject{|hypot|
+    hypot == person # One isn't himself sibling
+  }
+end
+
 def load_persons!
   $persons_by_normfname_name = Hash.new{|h, fname|
     h[fname] = Hash.new{|h2, name|
@@ -225,11 +233,18 @@ def load_persons!
     }
   }
 
+  $persons_by_normfname_normfathersname = Hash.new{|h, fname|
+    h[fname] = Hash.new{|h2, father_name|
+      h2[father_name] = []
+    }
+  }
+
   $persons = []
 
   Person.each_in_file('csv_unicode/persons.csv'){|person|
     $persons_by_normfname_name[person.fname_normalized][person.name] << person
     $persons_by_normfname_lname[person.fname_normalized][person.lname] << person
+    $persons_by_normfname_normfathersname[person.fname_normalized][person.father_name_normalized] << person
     $persons << person
   }
 end
