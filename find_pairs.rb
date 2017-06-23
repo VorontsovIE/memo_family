@@ -1,7 +1,9 @@
 require_relative 'person_match'
 
 load_data!
+$stderr.puts 'Loaded supplementary data'
 load_persons!
+$stderr.puts 'Loaded persons'
 
 
 LINK_TYPES = {isFatherOf: 0, isSiblingOf: 1, isDuplicateOf: 2}
@@ -43,12 +45,14 @@ puts headers.join("\t")
 
 # Дети не слишком "многодетных" отцов (слишком "многодетные отцы" - это скорее всего ошибки картирования)
 potential_children = $persons.lazy.select{|person|
-  (!person.birthplace.empty? || !person.liveplace.empty?)
+  (!person.birth_place.empty? || !person.live_place.empty?)
 }.map{|person|
   hypothetical_children(person)
 }.select{|children|
   children.size <= 4
 }.to_a.flatten
+
+$stderr.puts 'Potential children extracted'
 
 # По детям восстановим отцов
 potential_children.uniq.map{|person|
@@ -56,16 +60,16 @@ potential_children.uniq.map{|person|
 }.reject{|person, hypots|
   hypots.empty? #|| hypots.size > 10
 }.map{|person, hypots|
-  hypots_refined = hypots.select{|hypot| !hypot.birthplace.empty? || !hypot.liveplace.empty? }
+  hypots_refined = hypots.select{|hypot| !hypot.birth_place.empty? || !hypot.live_place.empty? }
   [person, hypots_refined]
 }.map{|person, hypots|
   hypots_refined = hypots.select{|hypot|
-    !person.reabdate.empty? && person.reabdate == hypot.reabdate
+    !person.reab_date.empty? && person.reab_date == hypot.reab_date
   }
   [person, hypots_refined]
 }.map{|person, hypots|
   hypots_refined = hypots.select{|hypot|
-    loc_match_any?([person.birthplace, person.liveplace], [hypot.birthplace, hypot.liveplace], threshold: 0.0)
+    loc_match_any?([person.birth_place, person.live_place], [hypot.birth_place, hypot.live_place], threshold: 0.0)
   }
  [person, hypots_refined]
 }.select{|person, hypots|
@@ -76,26 +80,27 @@ potential_children.uniq.map{|person|
   infos = relation_infos(father, child, :isFatherOf)
   puts infos.join("\t")
 }
+$stderr.puts 'Parents extracted'
 
 # Сиблинги
 $persons.lazy.select{|person|
-  (!person.birthplace.empty? || !person.liveplace.empty?) && !person.reabdate.empty?
+  (!person.birth_place.empty? || !person.live_place.empty?) && !person.reab_date.empty?
 }.map{|person|
   [person, hypothetical_siblings(person)]
 }.reject{|person, hypots|
   hypots.empty?
 }
 .map{|person, hypots|
-  hypots_refined = hypots.select{|hypot| !hypot.birthplace.empty? || !hypot.liveplace.empty? }
+  hypots_refined = hypots.select{|hypot| !hypot.birth_place.empty? || !hypot.live_place.empty? }
   [person, hypots_refined]
 }.map{|person, hypots|
   hypots_refined = hypots.select{|hypot|
-    !person.reabdate.empty? && person.reabdate == hypot.reabdate
+    !person.reab_date.empty? && person.reab_date == hypot.reab_date
   }
   [person, hypots_refined]
 }.map{|person, hypots|
   hypots_refined = hypots.select{|hypot|
-    loc_match_any?([person.birthplace, person.liveplace], [hypot.birthplace, hypot.liveplace], threshold: 0.0)
+    loc_match_any?([person.birth_place, person.live_place], [hypot.birth_place, hypot.live_place], threshold: 0.0)
   }
  [person, hypots_refined]
 }.reject{|person, hypots|
@@ -116,3 +121,5 @@ $persons.lazy.select{|person|
   end
   puts infos.join("\t")
 }
+
+$stderr.puts 'Siblings extracted'

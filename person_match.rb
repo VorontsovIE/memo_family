@@ -1,6 +1,13 @@
 require 'levenshtein'
 require 'csv'
 
+def unquote(str)
+  result = str
+  result = result.gsub(/""/, '"')
+  result = result[1..-2]  if result.match?(/^".*"$/)
+  result
+end
+
 def getDay(dateInMemorialFmt)
   result = dateInMemorialFmt & 0b11111
   result != 0 ? result : nil
@@ -37,46 +44,69 @@ class VarFIO
   alias_method :inspect, :to_s
 end
 
+def table_value_by_id(filename, &block)
+  rows = File.readlines(filename).drop(1).map{|l| l.chomp.split(';', 2) }
+  if block_given?
+    result = rows.map{|id, val| [Integer(id), yield(unquote(val))] }.to_h
+  else
+    result = rows.map{|id, val| [Integer(id), unquote(val)] }.to_h
+  end
+  raise 'Many-to-many table where one-to-many expected'  unless rows.size == result.size
+  result
+end
+
+def table_id_pair(filename)
+  rows = File.readlines(filename).drop(1).map{|l| l.chomp.split(';', 2) }
+  result = rows.map{|id_1, id_2| [Integer(id_1), Integer(id_2)] }.to_h
+  raise 'Many-to-many table where one-to-many expected'  unless rows.size == result.size
+  result
+end
+
+
 def load_data!
-  $FNAMES = File.readlines('csv_unicode/fnames.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $FNAMES_NORMALIZED = File.readlines('csv_unicode/fnames_normalized.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $NAMES = File.readlines('csv_unicode/names.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $LNAMES = File.readlines('csv_unicode/lnames.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $FATHER_NAME_FROM_LNAMES = File.readlines('csv_unicode/fathers_names_from_lnames.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $PLACES = File.readlines('csv_unicode/geoplace.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $NATIONS = File.readlines('csv_unicode/nations.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $STATS = File.readlines('csv_unicode/stat.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $WORKS = File.readlines('csv_unicode/works.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $SUDORG = File.readlines('csv_unicode/sudorg.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
+  $FNAMES = table_value_by_id('csv_unicode/fnames.csv')
+  $FNAMES_NORMALIZED = table_value_by_id('csv_unicode/fnames_normalized.csv')
+  $NAMES = table_value_by_id('csv_unicode/names.csv')
+  $LNAMES = table_value_by_id('csv_unicode/lnames.csv')
+  $FATHER_NAME_FROM_LNAMES = table_value_by_id('csv_unicode/fathers_names_from_lnames.csv')
+  $PLACES = table_value_by_id('csv_unicode/geoplace.csv')
+  $NATIONS = table_value_by_id('csv_unicode/nations.csv')
+  $STATYA = table_value_by_id('csv_unicode/stat.csv')
+  $WORKS = table_value_by_id('csv_unicode/works.csv')
+  $SUDORG = table_value_by_id('csv_unicode/sudorg.csv')
 
-  $REABORGAN = File.readlines('csv_unicode/reaborg.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $PERSON_TO_REABORGAN = File.readlines('csv_unicode/linkreaborg.csv').drop(1).map{|l| person_id, reaborg_id = l.split(';', 2).map(&:strip); [Integer(person_id), Integer(reaborg_id)] }.to_h
+  $REABORGAN = table_value_by_id('csv_unicode/reaborg.csv')
+  $PERSON_TO_REABORGAN = table_id_pair('csv_unicode/linkreaborg.csv')
 
-  $EDUCATION = File.readlines('csv_unicode/educat.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $PERSON_TO_EDUCATION = File.readlines('csv_unicode/linkeducat.csv').drop(1).map{|l| person_id, educat_id = l.split(';', 2).map(&:strip); [Integer(person_id), Integer(educat_id)] }.to_h
+  $EDUCATION = table_value_by_id('csv_unicode/educat.csv')
+  $PERSON_TO_EDUCATION = table_id_pair('csv_unicode/linkeducat.csv')
 
-  $REPR_PREV = File.readlines('csv_unicode/reprprev.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $PERSON_TO_REPR_PREV = File.readlines('csv_unicode/linkreprprev.csv').drop(1).map{|l| person_id, repr_prev_id = l.split(';', 2).map(&:strip); [Integer(person_id), Integer(repr_prev_id)] }.to_h
-  $REPR_NEXT = File.readlines('csv_unicode/reprnext.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $PERSON_TO_REPR_NEXT = File.readlines('csv_unicode/linkreprnext.csv').drop(1).map{|l| person_id, repr_next_id = l.split(';', 2).map(&:strip); [Integer(person_id), Integer(repr_next_id)] }.to_h
+  $REPR_PREV = table_value_by_id('csv_unicode/reprprev.csv')
+  $PERSON_TO_REPR_PREV = table_id_pair('csv_unicode/linkreprprev.csv')
+  $REPR_NEXT = table_value_by_id('csv_unicode/reprnext.csv')
+  $PERSON_TO_REPR_NEXT = table_id_pair('csv_unicode/linkreprnext.csv')
 
-  $EDUCATION = File.readlines('csv_unicode/educat.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $PERSON_TO_EDUCATION = File.readlines('csv_unicode/linkeducat.csv').drop(1).map{|l| person_id, educat_id = l.split(';', 2).map(&:strip); [Integer(person_id), Integer(educat_id)] }.to_h
+  $EDUCATION = table_value_by_id('csv_unicode/educat.csv')
+  $PERSON_TO_EDUCATION = table_id_pair('csv_unicode/linkeducat.csv')
 
-  $ARESTTYPE = File.readlines('csv_unicode/aresttyp.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $PERSON_TO_ARESTTYPE = File.readlines('csv_unicode/linkaresttyp.csv').drop(1).map{|l| person_id, aresttype_id = l.split(';', 2).map(&:strip); [Integer(person_id), Integer(aresttype_id)] }.to_h
+  $AREST_TYPE = table_value_by_id('csv_unicode/aresttyp.csv')
+  $PERSON_TO_ARESTTYPE = table_id_pair('csv_unicode/linkaresttyp.csv')
 
-  $PODDAN = File.readlines('csv_unicode/poddan.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
-  $PERSON_TO_PODDAN = File.readlines('csv_unicode/linkpoddan.csv').drop(1).map{|l| person_id, poddanstvo_id = l.split(';', 2).map(&:strip); [Integer(person_id), Integer(poddanstvo_id)] }.to_h
+  $PODDAN = table_value_by_id('csv_unicode/poddan.csv')
+  $PERSON_TO_PODDAN = table_id_pair('csv_unicode/linkpoddan.csv')
 
-  $PERSON_TO_FAMILY = File.readlines('csv_unicode/linkfams.csv').drop(1).map{|l| person_id, fam_id = l.split(';', 2).map(&:strip); [Integer(person_id), Integer(fam_id)] }.to_h
-  $FAMILIES = File.readlines('csv_unicode/fams.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
+  $PERSON_TO_FAMILY = table_id_pair('csv_unicode/linkfams.csv')
+  $FAMILIES = table_value_by_id('csv_unicode/fams.csv')
 
-  $VARFIO = File.readlines('csv_unicode/varnames.csv').drop(1).map{|l| id, *vals = l.split(';', 6).map(&:strip); [Integer(id), VarFIO.from_raw_strings(*vals)] }.to_h
-  $PERSON_TO_VARFIO = File.readlines('csv_unicode/linkvarfio.csv').drop(1).map{|l| person_id, varfio_id = l.split(';', 2).map(&:strip); [Integer(person_id), Integer(varfio_id)] }.to_h
+  $VARFIO = File.readlines('csv_unicode/varnames.csv').drop(1).map{|l|
+    id, *vals = l.split(';', 6).map(&:strip)
+    [Integer(id), VarFIO.from_raw_strings(*vals)]
+  }.to_h
+
+  $PERSON_TO_VARFIO = table_id_pair('csv_unicode/linkvarfio.csv')
 
 
-  $PRIGOVORS = File.readlines('csv_unicode/prigovor.csv').drop(1).map{|l| id, val = l.split(';', 2).map(&:strip); [Integer(id), val] }.to_h
+  $PRIGOVORS = table_value_by_id('csv_unicode/prigovor.csv')
 
   # Немного неоднозначно отчеству сопоставляется имя:  Эмильевич и Эмильевна --> Эмиль/Эмилий. Игнорируем
   $lname_to_name = File.readlines('man_names.tsv').map{|l| l.chomp.split("\t") }.flat_map{|name, lnames|
@@ -86,16 +116,16 @@ def load_data!
   $name_to_lnames = File.readlines('man_names.tsv').map{|l| l.chomp.split("\t") }.map{|name, lnames| [name, lnames.split(',')] }.to_h
 end
 
-Person ||= Struct.new(:id, :fname_id, :name_id, :lname_id, :birthdate_memofmt, :birthplace_id, :nation_id, :work_id, :liveplace_id, 
-                    :arestdate_memofmt, :sudorgan_id, :suddate_memofmt, :stat_id, :prigovor_id, :rasstrel, :mortdate_memofmt, :reabdate_memofmt,
+Person ||= Struct.new(:id, :fname_id, :name_id, :lname_id, :birth_date_memofmt, :birth_place_id, :nation_id, :work_id, :live_place_id,
+                    :arest_date_memofmt, :sudorgan_id, :sud_date_memofmt, :stat_id, :prigovor_id, :rasstrel, :mort_date_memofmt, :reab_date_memofmt,
                     :book, :age, :gender)
 class Person
   def self.from_string(str)
-    id, fname_id, name_id, lname_id, birthdate_memofmt, birthplace_id, nation_id, work_id, liveplace_id, 
-                    arestdate_memofmt, sudorgan_id, suddate_memofmt, stat_id, prigovor_id, rasstrel, mortdate_memofmt, reabdate_memofmt, book, age, gender = str.chomp.split(";")
-    self.new(Integer(id), Integer(fname_id), Integer(name_id), Integer(lname_id), Integer(birthdate_memofmt), Integer(birthplace_id), 
-            Integer(nation_id), Integer(work_id), Integer(liveplace_id), Integer(arestdate_memofmt), Integer(sudorgan_id), Integer(suddate_memofmt), Integer(stat_id), 
-            Integer(prigovor_id), rasstrel == 'T', Integer(mortdate_memofmt), Integer(reabdate_memofmt), Integer(book), Integer(age), gender&.to_sym)
+    id, fname_id, name_id, lname_id, birth_date_memofmt, birth_place_id, nation_id, work_id, live_place_id,
+                    arest_date_memofmt, sudorgan_id, sud_date_memofmt, stat_id, prigovor_id, rasstrel, mort_date_memofmt, reab_date_memofmt, book, age, gender = str.chomp.split(";")
+    self.new(Integer(id), Integer(fname_id), Integer(name_id), Integer(lname_id), Integer(birth_date_memofmt), Integer(birth_place_id),
+            Integer(nation_id), Integer(work_id), Integer(live_place_id), Integer(arest_date_memofmt), Integer(sudorgan_id), Integer(sud_date_memofmt), Integer(stat_id),
+            Integer(prigovor_id), rasstrel == 'T', Integer(mort_date_memofmt), Integer(reab_date_memofmt), Integer(book), Integer(age), gender&.to_sym)
   end
 
   def self.each_in_file(fn, &block)
@@ -111,34 +141,34 @@ class Person
   def name; $NAMES[name_id]; end
   def lname; $LNAMES[lname_id]; end
 
-  def birthplace; $PLACES[birthplace_id]; end
-  def liveplace; $PLACES[liveplace_id]; end
-  
-  def stat; $STATS[stat_id]; end
+  def birth_place; $PLACES[birth_place_id]; end
+  def live_place; $PLACES[live_place_id]; end
+
+  def statya; $STATYA[stat_id]; end
   def work; $WORKS[stat_id]; end
   def sudorgan; $SUDORG[stat_id]; end
-  
-  def birth_year; getYear(birthdate_memofmt); end
-  def year_of_arrest; getYear(arestdate_memofmt); end
-  def year_of_death; getYear(mortdate_memofmt); end
 
-  def birthdate; dateHumanFormatted(birthdate_memofmt); end
-  def arestdate; dateHumanFormatted(arestdate_memofmt); end
-  def suddate; dateHumanFormatted(suddate_memofmt); end
-  def mortdate; dateHumanFormatted(mortdate_memofmt); end
-  def reabdate; dateHumanFormatted(reabdate_memofmt); end
-  
+  def birth_year; getYear(birth_date_memofmt); end
+  def year_of_arrest; getYear(arest_date_memofmt); end
+  def year_of_death; getYear(mort_date_memofmt); end
+
+  def birth_date; dateHumanFormatted(birth_date_memofmt); end
+  def arest_date; dateHumanFormatted(arest_date_memofmt); end
+  def sud_date; dateHumanFormatted(sud_date_memofmt); end
+  def mort_date; dateHumanFormatted(mort_date_memofmt); end
+  def reab_date; dateHumanFormatted(reab_date_memofmt); end
+
   def father_name; $lname_to_name[lname]; end
   def father_name_normalized; $FATHER_NAME_FROM_LNAMES[lname_id]; end
   def full_name; "#{fname} #{name} #{lname}"; end
   def nation; $NATIONS[nation_id]; end
   def family; fam_id = $PERSON_TO_FAMILY[id]; fam_id && $FAMILIES[fam_id] end
-  def reaborgan; reaborg_id = $PERSON_TO_REABORGAN[id]; reaborg_id && $REABORGAN[reaborg_id] end
+  def reab_organ; reaborg_id = $PERSON_TO_REABORGAN[id]; reaborg_id && $REABORGAN[reaborg_id] end
   def education; educat_id = $PERSON_TO_EDUCATION[id]; educat_id && $EDUCATION[educat_id] end
   def poddanstvo; poddanstvo_id = $PERSON_TO_PODDAN[id]; poddanstvo_id && $PODDAN[poddanstvo_id] end
   def varfio; varfio_id = $PERSON_TO_VARFIO[id]; varfio_id && $VARFIO[varfio_id] end
 
-  def aresttype; aresttype_id = $PERSON_TO_ARESTTYPE[id]; aresttype_id && $ARESTTYPE[aresttype_id] end
+  def arest_type; aresttype_id = $PERSON_TO_ARESTTYPE[id]; aresttype_id && $AREST_TYPE[aresttype_id] end
 
   def repr_prev; repr_prev_id = $PERSON_TO_REPR_PREV[id]; repr_prev_id && $REPR_PREV[repr_prev_id] end
   def repr_next; repr_next_id = $PERSON_TO_REPR_NEXT[id]; repr_next_id && $REPR_NEXT[repr_next_id] end
@@ -146,43 +176,43 @@ class Person
   def prigovor; $PRIGOVORS[prigovor_id]; end
   def vmn?; prigovor.match?(/ВМН|расстрел/i); end
   def to_s
-    additional_infos = [birthdate, nation, birthplace].reject(&:empty?).join(';')
+    additional_infos = [birth_date, nation, birth_place].reject(&:empty?).join(';')
     "#{full_name} (#{additional_infos})"
   end
 
   def infocard
-    result = ["#{full_name} (#{birthdate}) - #{nation}; #{poddanstvo}"]
+    result = ["#{full_name} (#{birth_date}) - #{nation}; #{poddanstvo}"]
     result << "Варианты имени: #{varfio}" if varfio
-    result << "Родился: #{birthplace}" if !birthplace.empty?
-    result << "ПМЖ: #{liveplace}" if !liveplace.empty?
+    result << "Родился: #{birth_place}" if !birth_place.empty?
+    result << "ПМЖ: #{live_place}" if !live_place.empty?
     result << "Семья: #{family}"  if family && !family.empty?
     result << "Образование: #{education}"  if education && !education.empty?
-    result << "Арест: #{arestdate} #{aresttype}" if (aresttype && !aresttype.empty?) || !arestdate.empty?
-    result << "Постановление: (#{suddate}) #{stat} -- #{sudorgan}"  if !suddate.empty? || !stat.empty? || !sudorgan.empty?
-    result << "Приговор: #{prigovor}; Расстрел: #{rasstrel ? 'да' : 'нет'}; Умер: #{mortdate}" if !prigovor.empty? || !mortdate.empty?
-    result << "Реабилитирован: (#{reabdate}) #{reaborgan}"  if !reabdate.empty? || !reaborgan.empty?
+    result << "Арест: #{arest_date} #{arest_type}" if (arest_type && !arest_type.empty?) || !arest_date.empty?
+    result << "Постановление: (#{sud_date}) #{statya} -- #{sudorgan}"  if !sud_date.empty? || !statya.empty? || !sudorgan.empty?
+    result << "Приговор: #{prigovor}; Расстрел: #{rasstrel ? 'да' : 'нет'}; Умер: #{mort_date}" if !prigovor.empty? || !mort_date.empty?
+    result << "Реабилитирован: (#{reab_date}) #{reab_organ}"  if !reab_date.empty? || !reab_organ.empty?
     result.join("\n")
   end
 
   def fullname_with_year
-    "#{full_name} (#{getYear(birthdate_memofmt)})"
+    "#{full_name} (#{getYear(birth_date_memofmt)})"
   end
-  
+
   def full_info_row
-    [id, fname, name, lname, birthdate, birthplace, nation, work, liveplace, 
-      arestdate, sudorgan, suddate, stat, prigovor, rasstrel, mortdate, reabdate, book, age, gender].join("\t")
+    [id, fname, name, lname, birth_date, birth_place, nation, work, live_place,
+      arest_date, sudorgan, sud_date, statya, prigovor, rasstrel, mort_date, reab_date, book, age, gender].join("\t")
   end
   alias_method :inspect, :to_s
 end
 
 def older?(first, second, min_difference: 0, default: nil)
-  return default  if !getYear(first) || !getYear(second)  
+  return default  if !getYear(first) || !getYear(second)
   getYear(first) + min_difference < getYear(second)
 end
 
 def loc_match?(place_1, place_2, threshold: 0.5)
   return false  unless place_1 && !place_1.empty? && place_2 && !place_2.empty?
-  Levenshtein.normalized_distance(place_1.downcase, place_2.downcase) <= threshold 
+  Levenshtein.normalized_distance(place_1.downcase, place_2.downcase) <= threshold
 end
 
 def loc_match_any?(places_1, places_2, threshold: 0.5)
@@ -198,7 +228,7 @@ def hypothetical_fathers(person)
     .reject{|hypot_father|
       hypot_father == person # Иосиф Иосифович
     }.select{|hypot_father|
-      older?(hypot_father.birthdate_memofmt, person.birthdate_memofmt, min_difference: 14, default: false)
+      older?(hypot_father.birth_date_memofmt, person.birth_date_memofmt, min_difference: 14, default: false)
     }
 end
 
@@ -210,7 +240,7 @@ def hypothetical_children(person)
   }.reject{|hypot_children|
     hypot_children == person # Иосиф Иосифович
   }.select{|hypot_children|
-    older?(person.birthdate_memofmt, hypot_children.birthdate_memofmt, min_difference: 14, default: false)
+    older?(person.birth_date_memofmt, hypot_children.birth_date_memofmt, min_difference: 14, default: false)
   }
 end
 
