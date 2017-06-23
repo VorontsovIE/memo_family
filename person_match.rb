@@ -145,8 +145,8 @@ class Person
   def live_place; $PLACES[live_place_id]; end
 
   def statya; $STATYA[stat_id]; end
-  def work; $WORKS[stat_id]; end
-  def sudorgan; $SUDORG[stat_id]; end
+  def work; $WORKS[work_id]; end
+  def sudorgan; $SUDORG[sudorgan_id]; end
 
   def birth_year; getYear(birth_date_memofmt); end
   def year_of_arrest; getYear(arest_date_memofmt); end
