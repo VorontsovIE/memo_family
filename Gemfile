@@ -1,3 +1,5 @@
 source 'https://rubygems.org'
 gem 'levenshtein'
 gem 'sinatra'
+gem 'pg'
+gem 'sequel'
