@@ -64,49 +64,49 @@ end
 
 
 def load_data!
-  $FNAMES = table_value_by_id('csv_unicode/fnames.csv')
-  $FNAMES_NORMALIZED = table_value_by_id('csv_unicode/fnames_normalized.csv')
-  $NAMES = table_value_by_id('csv_unicode/names.csv')
-  $LNAMES = table_value_by_id('csv_unicode/lnames.csv')
-  $FATHER_NAME_FROM_LNAMES = table_value_by_id('csv_unicode/fathers_names_from_lnames.csv')
-  $PLACES = table_value_by_id('csv_unicode/geoplace.csv')
-  $NATIONS = table_value_by_id('csv_unicode/nations.csv')
-  $STATYA = table_value_by_id('csv_unicode/stat.csv')
-  $WORKS = table_value_by_id('csv_unicode/works.csv')
-  $SUDORG = table_value_by_id('csv_unicode/sudorg.csv')
+  $FNAMES = table_value_by_id('csv/fnames.csv')
+  $FNAMES_NORMALIZED = table_value_by_id('csv/fnames_normalized.csv')
+  $NAMES = table_value_by_id('csv/names.csv')
+  $LNAMES = table_value_by_id('csv/lnames.csv')
+  $FATHER_NAME_FROM_LNAMES = table_value_by_id('csv/fathers_names_from_lnames.csv')
+  $PLACES = table_value_by_id('csv/geoplace.csv')
+  $NATIONS = table_value_by_id('csv/nations.csv')
+  $STATYA = table_value_by_id('csv/stat.csv')
+  $WORKS = table_value_by_id('csv/works.csv')
+  $SUDORG = table_value_by_id('csv/sudorg.csv')
 
-  $REABORGAN = table_value_by_id('csv_unicode/reaborg.csv')
-  $PERSON_TO_REABORGAN = table_id_pair('csv_unicode/linkreaborg.csv')
+  $REABORGAN = table_value_by_id('csv/reaborg.csv')
+  $PERSON_TO_REABORGAN = table_id_pair('csv/linkreaborg.csv')
 
-  $EDUCATION = table_value_by_id('csv_unicode/educat.csv')
-  $PERSON_TO_EDUCATION = table_id_pair('csv_unicode/linkeducat.csv')
+  $EDUCATION = table_value_by_id('csv/educat.csv')
+  $PERSON_TO_EDUCATION = table_id_pair('csv/linkeducat.csv')
 
-  $REPR_PREV = table_value_by_id('csv_unicode/reprprev.csv')
-  $PERSON_TO_REPR_PREV = table_id_pair('csv_unicode/linkreprprev.csv')
-  $REPR_NEXT = table_value_by_id('csv_unicode/reprnext.csv')
-  $PERSON_TO_REPR_NEXT = table_id_pair('csv_unicode/linkreprnext.csv')
+  $REPR_PREV = table_value_by_id('csv/reprprev.csv')
+  $PERSON_TO_REPR_PREV = table_id_pair('csv/linkreprprev.csv')
+  $REPR_NEXT = table_value_by_id('csv/reprnext.csv')
+  $PERSON_TO_REPR_NEXT = table_id_pair('csv/linkreprnext.csv')
 
-  $EDUCATION = table_value_by_id('csv_unicode/educat.csv')
-  $PERSON_TO_EDUCATION = table_id_pair('csv_unicode/linkeducat.csv')
+  $EDUCATION = table_value_by_id('csv/educat.csv')
+  $PERSON_TO_EDUCATION = table_id_pair('csv/linkeducat.csv')
 
-  $AREST_TYPE = table_value_by_id('csv_unicode/aresttyp.csv')
-  $PERSON_TO_ARESTTYPE = table_id_pair('csv_unicode/linkaresttyp.csv')
+  $AREST_TYPE = table_value_by_id('csv/aresttyp.csv')
+  $PERSON_TO_ARESTTYPE = table_id_pair('csv/linkaresttyp.csv')
 
-  $PODDAN = table_value_by_id('csv_unicode/poddan.csv')
-  $PERSON_TO_PODDAN = table_id_pair('csv_unicode/linkpoddan.csv')
+  $PODDAN = table_value_by_id('csv/poddan.csv')
+  $PERSON_TO_PODDAN = table_id_pair('csv/linkpoddan.csv')
 
-  $PERSON_TO_FAMILY = table_id_pair('csv_unicode/linkfams.csv')
-  $FAMILIES = table_value_by_id('csv_unicode/fams.csv')
+  $PERSON_TO_FAMILY = table_id_pair('csv/linkfams.csv')
+  $FAMILIES = table_value_by_id('csv/fams.csv')
 
-  $VARFIO = File.readlines('csv_unicode/varnames.csv').drop(1).map{|l|
+  $VARFIO = File.readlines('csv/varnames.csv').drop(1).map{|l|
     id, *vals = l.split(';', 6).map(&:strip)
     [Integer(id), VarFIO.from_raw_strings(*vals)]
   }.to_h
 
-  $PERSON_TO_VARFIO = table_id_pair('csv_unicode/linkvarfio.csv')
+  $PERSON_TO_VARFIO = table_id_pair('csv/linkvarfio.csv')
 
 
-  $PRIGOVORS = table_value_by_id('csv_unicode/prigovor.csv')
+  $PRIGOVORS = table_value_by_id('csv/prigovor.csv')
 
   # Немного неоднозначно отчеству сопоставляется имя:  Эмильевич и Эмильевна --> Эмиль/Эмилий. Игнорируем
   $lname_to_name = File.readlines('man_names.tsv').map{|l| l.chomp.split("\t") }.flat_map{|name, lnames|
@@ -271,7 +271,7 @@ def load_persons!
 
   $persons = []
 
-  Person.each_in_file('csv_unicode/persons.csv'){|person|
+  Person.each_in_file('csv/persons.csv'){|person|
     $persons_by_normfname_name[person.fname_normalized][person.name] << person
     $persons_by_normfname_lname[person.fname_normalized][person.lname] << person
     $persons_by_normfname_normfathersname[person.fname_normalized][person.father_name_normalized] << person

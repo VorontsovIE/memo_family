@@ -19,9 +19,9 @@ def normalize_all_in_file(from_file, to_file, tag, fallback_to_original=False):
       id, name = row.strip().split(';')
       print(id, name, normalize_word(name, tag, fallback_to_original=fallback_to_original), sep='\t', file = fw)
 
-normalize_all_in_file('csv_unicode/names.csv', 'csv_unicode/names_w_normal_form.csv', 'Name', fallback_to_original=True)
-normalize_all_in_file('csv_unicode/fnames.csv', 'csv_unicode/surnames_w_normal_form.csv', 'Surn')
-normalize_all_in_file('csv_unicode/lnames.csv', 'csv_unicode/patronimics_w_normal_form.csv', 'Patr')
+normalize_all_in_file('csv/names.csv', 'csv/names_w_normal_form.csv', 'Name', fallback_to_original=True)
+normalize_all_in_file('csv/fnames.csv', 'csv/surnames_w_normal_form.csv', 'Surn')
+normalize_all_in_file('csv/lnames.csv', 'csv/patronimics_w_normal_form.csv', 'Patr')
 
 with open('algir_normalized.csv', 'w') as outfile:
   writer = csv.writer(outfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)

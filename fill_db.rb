@@ -59,44 +59,44 @@ end
 # DB = Sequel.connect('sqlite://memorial.db')
 
 DB = Sequel.postgres('memorial', host: 'localhost', user: 'ilya', password: 'ilya')
-populate_table_with_id_value_pairs(DB, :places, 'csv_unicode/geoplace.csv')
-populate_table_with_id_value_pairs(DB, :judicial_organs, 'csv_unicode/sudorg.csv')
-populate_table_with_id_value_pairs(DB, :criminal_articles, 'csv_unicode/stat.csv')
-populate_table_with_id_value_pairs(DB, :occupations, 'csv_unicode/works.csv')
-populate_table_with_id_value_pairs(DB, :sentences, 'csv_unicode/prigovor.csv')
-populate_table_with_id_value_pairs(DB, :nations, 'csv_unicode/nations.csv')
+populate_table_with_id_value_pairs(DB, :places, 'csv/geoplace.csv')
+populate_table_with_id_value_pairs(DB, :judicial_organs, 'csv/sudorg.csv')
+populate_table_with_id_value_pairs(DB, :criminal_articles, 'csv/stat.csv')
+populate_table_with_id_value_pairs(DB, :occupations, 'csv/works.csv')
+populate_table_with_id_value_pairs(DB, :sentences, 'csv/prigovor.csv')
+populate_table_with_id_value_pairs(DB, :nations, 'csv/nations.csv')
 
-populate_table_with_id_value_pairs(DB, :families, 'csv_unicode/fams.csv')
-populate_table_with_id_value_pairs(DB, :educations, 'csv_unicode/educat.csv')
-populate_table_with_id_value_pairs(DB, :criminal_cases, 'csv_unicode/delos.csv')
-populate_table_with_id_value_pairs(DB, :arest_organs, 'csv_unicode/arestorg.csv')
-populate_table_with_id_value_pairs(DB, :arest_types, 'csv_unicode/aresttyp.csv')
-populate_table_with_id_value_pairs(DB, :citizenships, 'csv_unicode/poddan.csv')
-populate_table_with_id_value_pairs(DB, :parties, 'csv_unicode/parties.csv')
-populate_table_with_id_value_pairs(DB, :rehabilitation_organs, 'csv_unicode/reaborg.csv')
-populate_table_with_id_value_pairs(DB, :rehabilitation_reasons, 'csv_unicode/reabreas.csv')
-populate_table_with_id_value_pairs(DB, :mort_places, 'csv_unicode/mortplac.csv')
-populate_table_with_id_value_pairs(DB, :ages, 'csv_unicode/ages.csv')
-populate_table_with_id_value_pairs(DB, :birth_years, 'csv_unicode/birthyear.csv')
-populate_table_with_id_value_pairs(DB, :previous_repressions, 'csv_unicode/reprprev.csv')
-populate_table_with_id_value_pairs(DB, :next_repressions, 'csv_unicode/reprnext.csv')
+populate_table_with_id_value_pairs(DB, :families, 'csv/fams.csv')
+populate_table_with_id_value_pairs(DB, :educations, 'csv/educat.csv')
+populate_table_with_id_value_pairs(DB, :criminal_cases, 'csv/delos.csv')
+populate_table_with_id_value_pairs(DB, :arest_organs, 'csv/arestorg.csv')
+populate_table_with_id_value_pairs(DB, :arest_types, 'csv/aresttyp.csv')
+populate_table_with_id_value_pairs(DB, :citizenships, 'csv/poddan.csv')
+populate_table_with_id_value_pairs(DB, :parties, 'csv/parties.csv')
+populate_table_with_id_value_pairs(DB, :rehabilitation_organs, 'csv/reaborg.csv')
+populate_table_with_id_value_pairs(DB, :rehabilitation_reasons, 'csv/reabreas.csv')
+populate_table_with_id_value_pairs(DB, :mort_places, 'csv/mortplac.csv')
+populate_table_with_id_value_pairs(DB, :ages, 'csv/ages.csv')
+populate_table_with_id_value_pairs(DB, :birth_years, 'csv/birthyear.csv')
+populate_table_with_id_value_pairs(DB, :previous_repressions, 'csv/reprprev.csv')
+populate_table_with_id_value_pairs(DB, :next_repressions, 'csv/reprnext.csv')
 
-populate_link_table(DB, :person_id, :person_to_family, :family_id, 'csv_unicode/linkfams.csv')
-populate_link_table(DB, :person_id, :person_to_education, :education_id, 'csv_unicode/linkeducat.csv')
-populate_link_table(DB, :person_id, :person_to_criminal_case, :criminal_case_id, 'csv_unicode/linkdelo.csv')
-populate_link_table(DB, :person_id, :person_to_arest_organ, :arest_organ_id, 'csv_unicode/linkarestorg.csv')
-populate_link_table(DB, :person_id, :person_to_arest_type, :arest_type_id, 'csv_unicode/linkaresttyp.csv')
-populate_link_table(DB, :person_id, :person_to_citizenship, :citizenship_id, 'csv_unicode/linkpoddan.csv')
-populate_link_table(DB, :person_id, :person_to_party, :party_id, 'csv_unicode/linkparty.csv')
-populate_link_table(DB, :person_id, :person_to_rehabilitation_organ, :rehabilitation_organ_id, 'csv_unicode/linkreaborg.csv')
-populate_link_table(DB, :person_id, :person_to_rehabilitation_reason, :rehabilitation_reason_id, 'csv_unicode/linkreabreas.csv')
-populate_link_table(DB, :person_id, :person_to_mort_place, :mort_place_id, 'csv_unicode/linkmortplace.csv')
-populate_link_table(DB, :person_id, :person_to_birth_year, :birth_year_id, 'csv_unicode/linkbirthye.csv')
+populate_link_table(DB, :person_id, :person_to_family, :family_id, 'csv/linkfams.csv')
+populate_link_table(DB, :person_id, :person_to_education, :education_id, 'csv/linkeducat.csv')
+populate_link_table(DB, :person_id, :person_to_criminal_case, :criminal_case_id, 'csv/linkdelo.csv')
+populate_link_table(DB, :person_id, :person_to_arest_organ, :arest_organ_id, 'csv/linkarestorg.csv')
+populate_link_table(DB, :person_id, :person_to_arest_type, :arest_type_id, 'csv/linkaresttyp.csv')
+populate_link_table(DB, :person_id, :person_to_citizenship, :citizenship_id, 'csv/linkpoddan.csv')
+populate_link_table(DB, :person_id, :person_to_party, :party_id, 'csv/linkparty.csv')
+populate_link_table(DB, :person_id, :person_to_rehabilitation_organ, :rehabilitation_organ_id, 'csv/linkreaborg.csv')
+populate_link_table(DB, :person_id, :person_to_rehabilitation_reason, :rehabilitation_reason_id, 'csv/linkreabreas.csv')
+populate_link_table(DB, :person_id, :person_to_mort_place, :mort_place_id, 'csv/linkmortplace.csv')
+populate_link_table(DB, :person_id, :person_to_birth_year, :birth_year_id, 'csv/linkbirthye.csv')
 
-populate_link_table(DB, :person_id, :person_to_previous_repression, :previous_repression_id, 'csv_unicode/linkreprprev.csv')
-populate_link_table(DB, :person_id, :person_to_next_repression, :next_repression_id, 'csv_unicode/linkreprnext.csv')
+populate_link_table(DB, :person_id, :person_to_previous_repression, :previous_repression_id, 'csv/linkreprprev.csv')
+populate_link_table(DB, :person_id, :person_to_next_repression, :next_repression_id, 'csv/linkreprnext.csv')
 
-populate_link_table(DB, :person_id, :person_to_name_variation, :name_variation_id, 'csv_unicode/linkvarfio.csv')
+populate_link_table(DB, :person_id, :person_to_name_variation, :name_variation_id, 'csv/linkvarfio.csv')
 
 
 unless DB.table_exists?(:normal_forms)
@@ -114,7 +114,7 @@ unless DB.table_exists?(:memory_books)
     String :title
     String :source
   end
-  data = File.readlines('csv_unicode/books.csv').drop(1).map{|line|
+  data = File.readlines('csv/books.csv').drop(1).map{|line|
     id, title, source = line.chomp.split(';', 3)
     [Integer(id), title, source]
   }
@@ -122,11 +122,11 @@ unless DB.table_exists?(:memory_books)
 end
 
 # normal form for surname is just name lowercased etc (for compatibility with father's name obtained from patronimic)
-populate_table_with_id_value_normalized_value(DB, :names, 1, 'csv_unicode/names_w_normal_form.csv')
+populate_table_with_id_value_normalized_value(DB, :names, 1, 'csv/names_w_normal_form.csv')
 # normal form for surname is surname in masculine form
-populate_table_with_id_value_normalized_value(DB, :surnames, 2, 'csv_unicode/surnames_w_normal_form.csv')
+populate_table_with_id_value_normalized_value(DB, :surnames, 2, 'csv/surnames_w_normal_form.csv')
 # normal form for patronimic is normalized father's name
-populate_table_with_id_value_normalized_value(DB, :patronimics, 3, 'csv_unicode/patronimics_w_normal_form.csv')
+populate_table_with_id_value_normalized_value(DB, :patronimics, 3, 'csv/patronimics_w_normal_form.csv')
 
 unless DB.table_exists?(:name_variations)
   DB.create_table :name_variations do
@@ -144,7 +144,7 @@ unless DB.table_exists?(:name_variations)
     # String :surname_variants
     # String :etc_variants
   end
-  data = File.readlines('csv_unicode/varnames.csv').drop(1).map{|line|
+  data = File.readlines('csv/varnames.csv').drop(1).map{|line|
     id, *rest = line.chomp.split(';', 6)
     [Integer(id), *rest]
   }
@@ -182,7 +182,7 @@ unless DB.table_exists?(:persons)
     :arest_date_memofmt, :judicial_organ_id, :sud_date_memofmt, :criminal_article_id, :sentence_id, 
     :rasstrel, :mort_date_memofmt, :reab_date_memofmt, :memory_book_id, :age_id, :sex,
   ]
-  data = File.open('csv_unicode/persons.csv'){|f|
+  data = File.open('csv/persons.csv'){|f|
     f.readline
     f.each_line.each_slice(10000).map{|chunk|
       data = chunk.map{|str|
