@@ -69,7 +69,8 @@ potential_children.uniq.map{|person|
   [person, hypots_refined]
 }.map{|person, hypots|
   hypots_refined = hypots.select{|hypot|
-    loc_match_any?([person.birth_place, person.live_place], [hypot.birth_place, hypot.live_place], threshold: 0.0)
+    # loc_match_any?([person.birth_place, person.live_place], [hypot.birth_place, hypot.live_place], threshold: 0.0)
+    ([person.birth_place_id, person.live_place_id] & [hypot.birth_place_id, hypot.live_place_id]).any?{|id| id && id != 0 }
   }
  [person, hypots_refined]
 }.select{|person, hypots|
