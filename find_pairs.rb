@@ -5,6 +5,11 @@ $stderr.puts 'Loaded supplementary data'
 load_persons!
 $stderr.puts 'Loaded persons'
 
+$num_persons_at_birthplace = $persons.each_with_object(Hash.new(0)){|person, hsh| hsh[person.birth_place] += 1 }
+$num_persons_at_liveplace = $persons.each_with_object(Hash.new(0)){|person, hsh| hsh[person.live_place] += 1 }
+$num_persons_at_reabdate = $persons.each_with_object(Hash.new(0)){|person, hsh| hsh[person.reab_date] += 1 }
+
+$stderr.puts 'Frequencies calculated'
 
 LINK_TYPES = {isFatherOf: 0, isSiblingOf: 1, isDuplicateOf: 2}
 
@@ -19,12 +24,23 @@ def relation_infos(person_1, person_2, link_type)
     person_1.birth_year,
     person_1.year_of_arrest,
     person_1.year_of_death,
+    person_1.birth_place,
+    person_1.live_place,
+    person_1.reab_date,
+    (!person_1.birth_place.empty? ? $num_persons_at_birthplace[person_1.birth_place] : 0) + (!person_1.live_place.empty? ? $num_persons_at_liveplace[person_1.live_place] : 0),
+    $num_persons_at_reabdate[person_1.reab_date],
+
 
     person_2.fullname_with_year,
     person_2.gender,
     person_2.birth_year,
     person_2.year_of_arrest,
     person_2.year_of_death,
+    person_2.birth_place,
+    person_2.live_place,
+    person_2.reab_date,
+    (!person_2.birth_place.empty? ? $num_persons_at_birthplace[person_2.birth_place] : 0) + (!person_2.live_place.empty? ? $num_persons_at_liveplace[person_2.live_place] : 0),
+    $num_persons_at_reabdate[person_2.reab_date],
   ]
 end
 
@@ -32,8 +48,10 @@ end
 
 headers = [
   'FirstPersonId', 'SecondPersonId', 'LinkType',
-  'FirstName',  'FirstSex',  'FirstBirthYear',  'FirstYearOfArrest',  'FirstYearOfDeath',
-  'SecondName', 'SecondSex', 'SecondBirthYear', 'SecondYearOfArrest', 'SecondYearOfDeath',
+  'FirstName',  'FirstSex',  'FirstBirthYear',  'FirstYearOfArrest',  'FirstYearOfDeath', 'FirstBirthPlace', 'FirstLivePlace', 'FirstReabdate',
+  'FirstSamePlaceOccurences', 'FirstSameReabdateOccurences',
+  'SecondName', 'SecondSex', 'SecondBirthYear', 'SecondYearOfArrest', 'SecondYearOfDeath', 'SecondBirthPlace', 'SecondLivePlace', 'SecondReabdate',
+  'SecondSamePlaceOccurences', 'SecondSameReabdateOccurences',
 ]
 puts headers.join("\t")
 

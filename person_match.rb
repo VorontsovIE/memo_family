@@ -2,7 +2,7 @@ require 'levenshtein'
 require 'csv'
 
 def unquote(str)
-  result = str
+  result = str || ''
   result = result.gsub(/""/, '"')
   result = result[1..-2]  if result.match?(/^".*"$/)
   result
@@ -55,6 +55,13 @@ def table_value_by_id(filename, &block)
   result
 end
 
+def normalized_val_by_id(filename)
+  rows = File.readlines(filename).drop(1).map{|l| l.chomp.split("\t"  , 3) }
+  result = rows.map{|id, val, normval| [Integer(id), unquote(normval)] }.to_h
+  raise 'Many-to-many table where one-to-many expected'  unless rows.size == result.size
+  result
+end
+
 def table_id_pair(filename)
   rows = File.readlines(filename).drop(1).map{|l| l.chomp.split(';', 2) }
   result = rows.map{|id_1, id_2| [Integer(id_1), Integer(id_2)] }.to_h
@@ -65,10 +72,10 @@ end
 
 def load_data!
   $FNAMES = table_value_by_id('csv/fnames.csv')
-  $FNAMES_NORMALIZED = table_value_by_id('csv/fnames_normalized.csv')
+  $FNAMES_NORMALIZED = normalized_val_by_id('csv/surnames_w_normal_form.csv')
   $NAMES = table_value_by_id('csv/names.csv')
   $LNAMES = table_value_by_id('csv/lnames.csv')
-  $FATHER_NAME_FROM_LNAMES = table_value_by_id('csv/fathers_names_from_lnames.csv')
+  $FATHER_NAME_FROM_LNAMES = normalized_val_by_id('csv/patronimics_w_normal_form.csv')
   $PLACES = table_value_by_id('csv/geoplace.csv')
   $NATIONS = table_value_by_id('csv/nations.csv')
   $STATYA = table_value_by_id('csv/stat.csv')
@@ -195,7 +202,7 @@ class Person
   end
 
   def fullname_with_year
-    "#{full_name} (#{getYear(birth_date_memofmt)})"
+    getYear(birth_date_memofmt) ? "#{full_name} (#{getYear(birth_date_memofmt)})" : full_name
   end
 
   def full_info_row
